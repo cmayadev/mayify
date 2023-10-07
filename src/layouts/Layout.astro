@@ -17,7 +17,7 @@ const { title } = Astro.props;
   </head>
   <body>
     <div id="app" class="relative h-screen p-2 gap-2">
-      <aside class="[grid-area:aside] flex-col flex overflow-y-auto">
+      <aside class="[grid-area:aside] flex-col flex overflow-y-auto w-[420px]">
         <AsideMenu />
       </aside>
 
@@ -36,7 +36,7 @@ const { title } = Astro.props;
         grid-template-areas:
           "aside main main"
           "player player player";
-        grid-template-columns: 350px 1fr;
+        grid-template-columns: auto 1fr;
         grid-template-rows: 1fr auto;
       }
     </style>
