@@ -3,8 +3,9 @@ import { usePlayerStore } from "@/store/playerStore";
 import { useEffect, useRef, useState } from "react";
 import { Slider } from "./Slider";
 
-export const Play = () => (
+export const Play = ({ className }) => (
   <svg
+    className={className}
     role="img"
     height="16"
     width="16"
@@ -17,8 +18,9 @@ export const Play = () => (
   </svg>
 );
 
-export const Pause = () => (
+export const Pause = ({ className }) => (
   <svg
+    className={className}
     role="img"
     height="16"
     width="16"
@@ -81,6 +83,54 @@ const CurrentSong = ({ image, title, artists }) => {
   );
 };
 
+const SongControl = ({ audio }) => {
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    audio.current.addEventListener("timeupdate", handleTimeUpdate);
+
+    return () => {
+      audio.current.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, []);
+
+  const handleTimeUpdate = () => {
+    setCurrentTime(audio.current.currentTime);
+  };
+
+  const formatTime = (time) => {
+    if (time === null) return `00:00`;
+
+    const seconds = Math.floor(time % 60);
+    const minutes = Math.floor(time / 60);
+
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const duration = audio?.current?.duration ?? 0;
+
+  return (
+    <div className="flex gap-x-3 text-xs pt-2">
+      <span className="opacity-50 text-right w-12">
+        {formatTime(currentTime)}
+      </span>
+      <Slider
+        defaultValue={[0]}
+        max={audio?.current?.duration ?? 0}
+        min={0}
+        className="w-[626px]"
+        value={[currentTime]}
+        onValueChange={(value) => {
+          audio.current.currentTime = value;
+        }}
+      />
+      <span className="opacity-50 w-12">
+        {duration ? formatTime(duration) : "0:00"}
+      </span>
+    </div>
+  );
+};
+
 const VolumeControl = () => {
   const volume = usePlayerStore((state) => state.volume);
   const setVolume = usePlayerStore((state) => state.setVolume);
@@ -99,7 +149,10 @@ const VolumeControl = () => {
 
   return (
     <div className="flex justify-center gap-x-2 text-white">
-      <button onClick={handleVolume}>
+      <button
+        className="opacity-70 hover:opacity-100 transition"
+        onClick={handleVolume}
+      >
         {volume === 0 ? <Muted /> : <Volume />}
       </button>
       <Slider
@@ -107,6 +160,7 @@ const VolumeControl = () => {
         max={100}
         min={0}
         className="w-[95px]"
+        value={[volume * 100]}
         onValueChange={(value) => {
           const [newVolume] = value;
           const volumeValue = newVolume / 100;
@@ -147,19 +201,20 @@ export function Player() {
 
   return (
     <div className="flex flex-row justify-between w-full px-4 z-50">
-      <div>
+      <div className="w-[570px]">
         <CurrentSong {...currentMusic.song} />
       </div>
 
-      <div className="grid place-content-center gap-4 flex-1">
-        <div className="flex justify-center">
+      <div className="grid place-content-center gap-4 flex-1 max-w-[722px] w-[40%]">
+        <div className="flex justify-center flex-col items-center">
           <button className="bg-white rounded-full p-2" onClick={handleClick}>
             {isPlaying ? <Pause /> : <Play />}
           </button>
+          <SongControl audio={audioRef} />
         </div>
       </div>
 
-      <div className="grid place-content-center">
+      <div className="grid justify-end place-content-center w-[30%]">
         <VolumeControl />
       </div>
 
